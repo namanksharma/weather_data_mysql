@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Weather Info</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    
+    <link rel="stylesheet" type="text/css" href="/static/css/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/select2.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/dev.css">
+
+    <script type="text/javascript" src="/static/js/jquery-1.9.1.min.js"></script>
+  </head>
+  <body>
+  <div class="body-container">
+
+    <h3>Get the history of weather condition by adding place or choosing from a list of places</h3>
+    
+    <div class="padding-center">
+    <!-- Dropdown for selecting place -->
+      <fieldset>
+          <legend>Select Place</legend>
+          
+          <select id="city_list" class="select2Place user-values">
+          
+            {% if cities %}
+              <option value=""></option>
+              {% for i in cities %}
+                <option value="{{i.lattitude}},{{i.longitude}}">{{i.name}}</option>
+              {% empty %}
+                <option value="">No data found</option>
+
+              {% endfor %}
+            {% else %}
+              <option value="">No data found</option>
+            {% endif %}
+          </select>
+
+          <!-- button for showing dialog -->
+          <span>
+            <button class="btn add-option" onclick="showCityDialog();">+Add Place</button>
+          </span>
+      
+      </fieldset>
+        
+
+      <!-- dropdown for selecting parameter -->
+      <fieldset>
+          <legend>Select Parameter</legend>
+          <select id="param_list" class="user-values select2Parameter">
+            <option></option>
+            <option value="humidity">Humidity</option>
+            <option value="temp_c">Temperature(in C)</option>
+            <option value="temp_f">Temperature(in F)</option>
+          </select>
+      </fieldset>
+
+      <!-- input for selecting to and from date -->
+      <fieldset>
+        <legend>Date Range</legend>
+        <label for="from_date">From</label>
+        <input class="datepicker" type="date" id="from_date">
+      
+        <label for="to_date">To</label>
+        <input class="datepicker" type="date" id="to_date">
+      </fieldset>
+
+
+      <!-- button for plotting a graph -->
+      <div>
+        <button class="btn" onclick="plotGraph();">Plot Graph</button>
+      </div>
+
+    </div>
+
+    <div id="myDiv" style="width: 1000px; height: 300px;"><!-- Plotly chart will be drawn inside this DIV --></div>
+
+  </div>
+
+    <!--  -->
+    <div class="fade">
+      <div class="loader"></div>
+    </div>
+
+    <!-- Dialog For Adding a city -->
+      <div id="dialog" title="City Dialog">
+        
+          <div id="pac-container">
+            <input id="pac-input" type="text" placeholder="Enter a location">
+          </div>
+          <span class="autocomplete_error"></span>
+
+      </div>
+
+    <script type="text/javascript" src="/static/js/home.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCwB3Zsi6EUX77hKP6fqiFFzwGUv_04SQc&libraries=places&callback=initMap" async defer></script>
+    <script type="text/javascript" src="/static/js/jquery-ui.js"></script>
+    <script type="text/javascript" src="/static/js/select2.min.js"></script>
+    <script type="text/javascript" src="/static/js/plotly.min.js"></script>
+  </body>
+</html>
