@@ -1,5 +1,5 @@
   var API_KEY = "11f12321792824d7"
-
+  callbackInterval = null;
   function initMap() {
     var card = document.getElementById('pac-card');
     var input = document.getElementById('pac-input');
@@ -116,11 +116,14 @@
         var datalen = diffObj.data.length;
 
         $.each(diffObj.data, function (i, item) {
-          processingOn();
           $.ajax({
               url: "http://api.wunderground.com/api/"+API_KEY+"/history_"+item+"/q/"+latlong+".json",
               cache: false,
               async: false,
+              beforeSend: function()
+              {
+                  $(".fade").show("fast");
+              },
               success: function(html){
                 if( "error" in html.response ){
                   alert(data.response.error.description.toString())
@@ -164,58 +167,71 @@
   }
 
   function plotGraphCallback(plotData) {
-    x = [];
-    y = [];
-    var param = $("#param_list").val();
-    switch(param){
-      case "humidity":{
-        param = "humidity";
-        title = "Humidity of "+$("#city_list").find("option:selected").text()+" from "+plotData[0].date+" to "+plotData[plotData.length-1].date;
-      }break;
-      case "temp_c":{
-        param = "temp_c";
-        title = "Temperature(in C) of "+$("#city_list").find("option:selected").text()+" from "+plotData[0].date+" to "+plotData[plotData.length-1].date;
-      }break;
-      case "temp_f":{
-        param = "temp_f";
-        title = "Temperature(in F) of "+$("#city_list").find("option:selected").text()+" from "+plotData[0].date+" to "+plotData[plotData.length-1].date;
-      }break;
-      default:
-        alert("No parameter selected");
-        return false;
-        break;
+    if( plotData.length < 1 ){
+      $("#myDiv").empty();
+      $("#myDiv").css("height","700px");
+      clearInterval(callbackInterval);
+      processingOff();
+      alert("No data found to plot graph")
     }
-    for (i in plotData){
-      x.push(plotData[i].date);
-      y.push(eval("plotData[i]."+param));
-    }
-    
-    var data = [
-      {
-        x: x,
-        y: y,
-        type: 'scatter'
+    else{
+      x = [];
+      y = [];
+      var param = $("#param_list").val();
+      switch(param){
+        case "humidity":{
+          param = "humidity";
+          title = "Humidity of "+$("#city_list").find("option:selected").text()+" from "+plotData[0].date+" to "+plotData[plotData.length-1].date;
+        }break;
+        case "temp_c":{
+          param = "temp_c";
+          title = "Temperature(in C) of "+$("#city_list").find("option:selected").text()+" from "+plotData[0].date+" to "+plotData[plotData.length-1].date;
+        }break;
+        case "temp_f":{
+          param = "temp_f";
+          title = "Temperature(in F) of "+$("#city_list").find("option:selected").text()+" from "+plotData[0].date+" to "+plotData[plotData.length-1].date;
+        }break;
+        default:
+          alert("No parameter selected");
+          return false;
+          break;
       }
-    ];
-    var layout = {
-      title:title,
-    };
-    $("#myDiv").css("height","700px");
-    $(".svg-container").css("height","700px");
-    $(".main-svg").attr("height","700px");
+      for (i in plotData){
+        x.push(plotData[i].date);
+        y.push(eval("plotData[i]."+param));
+      }
+      
+      var data = [
+        {
+          x: x,
+          y: y,
+          type: 'scatter'
+        }
+      ];
+      var layout = {
+        title:title,
+      };
+      $("#myDiv").css("height","700px");
+      $(".svg-container").css("height","700px");
+      $(".main-svg").attr("height","700px");
 
-    Plotly.newPlot('myDiv', data, layout);
+      Plotly.newPlot('myDiv', data, layout);
 
-    $("#myDiv").css("height","900px");
-    $(".svg-container").css("height","900px");
-    $(".main-svg").attr("height","900px");
-    clearInterval(callbackInterval);
-    processingOff();
+      $("#myDiv").css("height","900px");
+      $(".svg-container").css("height","900px");
+      $(".main-svg").attr("height","900px");
+      clearInterval(callbackInterval);
+      processingOff();
+    }
   }
 
   function getDateDiff(startdate, enddate){
     var date1 = new Date(startdate);
     var date2 = new Date(enddate);
+    var currentDate = new Date();
+    if( date1 > currentDate || date2 > currentDate ){
+      return {"success":false,"errorMsg":"Date is greater than current date"}
+    }
     var timeDiff = Math.abs(date2.getTime() - date1.getTime());
     var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
     if(diffDays < 0 || (date1 > date2) ){
@@ -270,7 +286,7 @@
       });
 
     $(".datepicker").datepicker({
-            dateFormat: 'yy-mm-dd', changeMonth: true,changeYear: true ,yearRange: "-100:+0"
+            dateFormat: 'yy-mm-dd', changeMonth: true,changeYear: true ,yearRange: "-20:+0"
     });
 
     $("#myDiv").css("width",$(window).width());
